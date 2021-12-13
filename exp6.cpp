@@ -1,99 +1,97 @@
-#include<iostream>
-#include "GL/glut.h"
+#include<stdio.h>
+#include<gl/glut.h>
 #include<math.h>
 
-#define SPR 75
-#define DPI (3.1415/180.f)
-#define SPHERE_GA(p1,p2) {SPR*sin(DPI*(p1))*cos(DPI*(p2)),SPR*cos(DPI*(p1))*cos(DPI*(p2)),SPR*sin(DPI*(p2))}
-int state = 0;
-void displayLoop() {
-	//glClearColor(0, 0, 0, 1.f);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-	glColor4f(1.f, 1.f, 1.f, 0.f);
-
-	//for(int i=0;i<STEPS;i++){
-	//0 - > 70
-	float c0 = .1f;
-	for (int i = -80; i < 80; i += 10) {
-
+void sphere()
+{
+	double c = 3.142 / 180, phi, phir, phir20, theta, thetar, x, y, z, c80, xc, yc, r; // converting to radians
+	// to get longitudes
+	for (phi = -80.0; phi <= 60.0; phi += 20.0)
+	{
+		//phi=-50.0;
+		phir = c * phi;  //  in radians – for the 1st point
+		phir20 = c * (phi + 20);  // for the 2nd point
 		glBegin(GL_QUAD_STRIP);
-		for (int thet = -180; thet <= 180; thet += 10) {
-			glColor3f(c0, c0, c0); c0 += .00125;
-			float p1[3] = SPHERE_GA(thet, i);
-			glVertex3fv(p1);
-			float p2[3] = SPHERE_GA(thet, i + 10);
-			glVertex3fv(p2);
+		// to get latitudes
+		for (theta = -180.0; theta <= 180.0; theta += 20.0)
+		{
+			thetar = c * theta;  // =-180*c = -3.132 – 1st time
+
+			x = sin(thetar) * cos(phir);
+			y = cos(thetar) * cos(phir);
+			z = sin(phir);
+			glVertex3d(x, y, z); // 1st point
+
+			phir20 = c * (phi + 20);
+			x = sin(thetar) * cos(phir20);
+			y = cos(thetar) * cos(phir20);
+			z = sin(phir20);
+			glVertex3d(x, y, z); // 2nd point
+
+
+
 		}
 		glEnd();
 	}
 
-
-	//north cap
+	//1st pole – use triangle fans
 	glBegin(GL_TRIANGLE_FAN);
-	glVertex3f(0, 0, SPR);
-	glColor3i(0.25, 0.25, 0);
-
-	for (int thet = -180; thet <= 180; thet += 10) {
-		glColor3f((thet + 180) / 360, .25, .25);
-		float p1[3] = SPHERE_GA(thet, 80);
-		glVertex3fv(p1);
+	glVertex3d(0.0, 0.0, 1.0);   // top pole
+	c80 = c * 80.0;
+	z = sin(c80);
+	for (theta = -180.0; theta <= 180.0; theta += 20.0)
+	{
+		thetar = c * theta;
+		x = sin(thetar) * cos(c80);
+		y = cos(thetar) * cos(c80);
+		glVertex3d(x, y, z);
 	}
 	glEnd();
-
-	//south cap
+	//2nd pole – use triangle fans
 	glBegin(GL_TRIANGLE_FAN);
-	glVertex3f(0, 0, -SPR);
-	glColor3i(0, 0.25, .25);
-
-	for (int thet = -180; thet <= 180; thet += 10) {
-		glColor3f((thet + 180) / 360, .25, .25);
-		float p1[3] = SPHERE_GA(thet, -80);
-		glVertex3fv(p1);
+	glVertex3d(0.0, 0.0, -1.0); // bottom pole
+	z = -sin(c80);
+	for (theta = -180.0; theta <= 180.0; theta += 20.0)
+	{
+		thetar = c * theta;
+		x = sin(thetar) * cos(c80);
+		y = cos(thetar) * cos(c80);
+		glVertex3d(x, y, z);
 	}
-
 	glEnd();
-
-
-
-	glFlush();
 
 }
+void display()
+{
+	int j;
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
-void reshape(int w, int h) {
-	glViewport(0, 0, w, h);
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
-	glOrtho(-w / 2, w / 2, -h / 2, h / 2, -200, 200);
-	glMatrixMode(GL_PROJECTION);
+	glTranslatef(0.0, 0.0, -1);
+	glRotatef(-90.0, 0.0, 1.0, 0.0);
+
+	sphere();
+
+	glFlush();
 }
+void myinit()
+{
+	glClearColor(1.0, 1.0, 1.0, 0);
+	glColor3f(0, 0, 1.0);
+	glPointSize(1.0);
+	gluOrtho2D(-1, 1, -1, 1);
+}
+void main(int argc, char* argv[])
+{
 
-
-int main(int argc, char** argv) {
-	std::cout << "Hello world" << std::endl;
 	glutInit(&argc, argv);
-	//single buffer, 
 	glutInitDisplayMode(GLUT_SINGLE | GLUT_RGB | GLUT_DEPTH);
-	glutCreateWindow("Send help");
-	int w = 800, h = 600;
-	glutInitWindowSize(w, h);
-
-	glutReshapeFunc(reshape);
-	glutDisplayFunc(displayLoop);
-
-	glClearColor(0, 0, 0, 1.f);
-	glMatrixMode(GL_MODELVIEW);
-	glOrtho(-w / 2, w / 2, -h / 2, h / 2, -200, 200);
-	glMatrixMode(GL_PROJECTION);
-
-	glEnable(GL_DEPTH_TEST);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
+	glutInitWindowSize(500, 500);
+	glutInitWindowPosition(100, 100);
+	glutCreateWindow("Sphere Display");
+	glutDisplayFunc(display);
+	myinit();
 	glutMainLoop();
-
-	/*glClearColor(0, 0, 0, 1.f);
-	glutMainLoop();
-	glMatrixMode(GL_MODELVIEW);
-	glOrtho(-w / 2, w / 2, -h / 2, h / 2, -200, 200);
-	glMatrixMode(GL_PROJECTION);*/
 }

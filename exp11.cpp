@@ -1,133 +1,115 @@
-#include <GL/glut.h>
-#include <iostream>
-#include <cmath>
+#include<gl/glut.h>
+#include <math.h>
+#include<iostream>
 
-using namespace std;
 
-#define WINSIZE 500
+//RIGHT CLICK TO SHOW REFLECTED HOUSE
+
+
 float house[11][2] = { { 100,200 },{ 200,250 },{ 300,200 },{ 100,200 },{ 100,100 },{ 175,100 },{ 175,150 },{ 225,150 },{ 225,100 },{ 300,100 },{ 300,200 } };
-int angle = 0;
-float m = 0.0f, c = 0.0f, theta = 0.0f;
-
-void display();
-void displayRotate();
-void displayReflect();
-void mousefunc(int, int, int, int);
-
-int main(int argc, char* argv[]) {
-	cout << "Enter rotation angle: ";
-	cin >> angle;
-	cout << "Enter m and c of reflection line: ";
-	cin >> m >> c;
-
-	glutInit(&argc, argv);
-	glutInitDisplayMode(GLUT_RGB | GLUT_SINGLE);
-
-	glutInitWindowSize(2*WINSIZE, 2*WINSIZE);
-	glutCreateWindow("House operations");
-
-	glutDisplayFunc(display);
-	glutMouseFunc(mousefunc);
-
-	glutMainLoop();
-	return 0;
-}
-
-void display() {
-	return;
-}
-
-void mousefunc(int button, int state, int x, int y) {
-	if (state == GLUT_DOWN) {
-		(button == GLUT_LEFT_BUTTON) ? displayRotate() : displayReflect();
-	}
-
-	return;
-}
-
-void displayRotate() {
+int angle;
+float m, c, theta;
+void display()
+{
+	glClearColor(1, 1, 1, 0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-	glOrtho(-(float)(WINSIZE - 1), (float)(WINSIZE - 1), -(float)(WINSIZE - 1), (float)(WINSIZE - 1), -1.0f, 1.0f);
+	gluOrtho2D(-450, 450, -450, 450);
 	glMatrixMode(GL_MODELVIEW);
-
-	glColor3f(1.0f, 0.0f, 0.0f);
+	glLoadIdentity();
+	//NORMAL HOUSE
+	glColor3f(1, 0, 0);
 	glBegin(GL_LINE_LOOP);
-	for (int i = 0; i < 11; i++) {
+	for (int i = 0; i < 11; i++)
 		glVertex2fv(house[i]);
-	}
 	glEnd();
 	glFlush();
-
+	//ROTATED HOUSE
 	glPushMatrix();
-	glTranslatef(100.0, 100.0, 0.0f);
-	glRotatef(angle, 0.0f, 0.0f, 1.0f);
-	glTranslatef(-100.0, -100.0, 0.0f);
-
-	glColor3f(0.0f, 1.0f, 0.0f);
-	glPushAttrib(GL_ENABLE_BIT);
-	glLineStipple(1, 0xAAAA);
-	glEnable(GL_LINE_STIPPLE);
+	glTranslatef(100, 100, 0);
+	glRotatef(angle, 0, 0, 1);
+	glTranslatef(-100, -100, 0);
+	glColor3f(1, 1, 0);
 	glBegin(GL_LINE_LOOP);
-	for (int i = 0; i < 11; i++) {
+	for (int i = 0; i < 11; i++)
 		glVertex2fv(house[i]);
-	}
 	glEnd();
-	glDisable(GL_LINE_STIPPLE);
-	glPopAttrib();
 	glPopMatrix();
 	glFlush();
-
-	return;
 }
-
-void displayReflect() {
+void display2()
+{
+	glClearColor(1, 1, 1, 0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-	glOrtho(-(float)(WINSIZE - 1), (float)(WINSIZE - 1), -(float)(WINSIZE - 1), (float)(WINSIZE - 1), -1.0f, 1.0f);
+	gluOrtho2D(-450, 450, -450, 450);
 	glMatrixMode(GL_MODELVIEW);
-
-	glColor3f(1.0f, 0.0f, 0.0f);
+	glLoadIdentity();
+	//normal house
+	glColor3f(1, 0, 0);
 	glBegin(GL_LINE_LOOP);
-	for (int i = 0; i < 11; i++) {
+	for (int i = 0; i < 11; i++)
 		glVertex2fv(house[i]);
-	}
 	glEnd();
 	glFlush();
-
-	float y1 = -(m * WINSIZE) + c, y2 = (m * WINSIZE) + c;
+	// line
+	float x1 = 0, x2 = 500;
+	float y1 = m * x1 + c;
+	float y2 = m * x2 + c;
+	glColor3f(1, 1, 0);
 	glBegin(GL_LINES);
-	glVertex2f(-WINSIZE, y1);
-	glVertex2f(WINSIZE, y2);
+	glVertex2f(x1, y1);
+	glVertex2f(x2, y2);
 	glEnd();
 	glFlush();
 
+	//Reflected
 	glPushMatrix();
-	glTranslatef(0.0f, c, 0.0f);
+	glTranslatef(0, c, 0);
 	theta = atan(m);
-	theta = theta * (180.0 / 3.14);
-	glRotatef(theta, 0.0f, 0.0f, 1.0f);
-	glScalef(1.0f, -1.0f, 1.0f);
-	glRotatef(-theta, 0.0f, 0.0f, 1.0f);
-	glTranslatef(0.0f, -c, 0.0f);
-
-	glColor3f(0.0f, 1.0f, 0.0f);
-	glPushAttrib(GL_ENABLE_BIT);
-	glLineStipple(1, 0xAAAA);
-	glEnable(GL_LINE_STIPPLE);
+	theta = theta * 180 / 3.14;
+	glRotatef(theta, 0, 0, 1);
+	glScalef(1, -1, 1);
+	glRotatef(-theta, 0, 0, 1);
+	glTranslatef(0, -c, 0);
 	glBegin(GL_LINE_LOOP);
-	for (int i = 0; i < 11; i++) {
+	for (int i = 0; i < 11; i++)
 		glVertex2fv(house[i]);
-	}
 	glEnd();
-	glDisable(GL_LINE_STIPPLE);
-	glPopAttrib();
 	glPopMatrix();
 	glFlush();
-
-	return;
+}
+void myInit() {
+	glClearColor(1.0, 1.0, 1.0, 1.0);
+	glColor3f(1.0, 0.0, 0.0);
+	glLineWidth(2.0);
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	gluOrtho2D(-450, 450, -450, 450);
+}
+void mouse(int btn, int state, int x, int y) {
+	if (btn == GLUT_LEFT_BUTTON && state == GLUT_DOWN) {
+		display();
+	}
+	else if (btn == GLUT_RIGHT_BUTTON && state == GLUT_DOWN) {
+		display2();
+	}
+}
+void main(int argc, char** argv)
+{
+	std::cout << "Enter the rotation angle : \n";
+	std::cin >> angle;
+	std::cout << "Enter c and m for line y = mx + c\n";
+	std::cin >> c >> m;
+	glutInit(&argc, argv);
+	glutInitDisplayMode(GLUT_SINGLE | GLUT_RGB);
+	glutInitWindowSize(900, 900);
+	glutInitWindowPosition(100, 100);
+	glutCreateWindow("House Rotation");
+	glutDisplayFunc(display);
+	glutMouseFunc(mouse);
+	myInit();
+	glutMainLoop();
 }

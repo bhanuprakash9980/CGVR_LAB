@@ -1,154 +1,160 @@
-#include <GL/glut.h>
-#include <iostream>
+#include<stdlib.h>
+#include<gl/glut.h>
+#include<iostream>
 
-using namespace std;
+#define WINDOW_HEIGHT 600
+#define WINDOW_WIDTH 600
 
-#define WINSIZE 500
-int plotflag = 0;
-int x1 = 0, x2 = 0, yc1 = 0, yc2 = 0, keymouse = 0;
+int x1, x2, yc1, y2, flag = 0;
 
-void init();
-void mousefunc(int, int, int, int);
-void display();
-void plotPoint(int, int);
-void plotLine(int, int, int, int);
-
-int main(int argc, char* argv[]) {
-	cout << "Coordinates from keyboard(1) or mouse(2): ";
-	cin >> keymouse;
-	if (keymouse == 1) {
-		cout << "Enter first point (x1, yc1): ";
-		cin >> x1 >> yc1;
-		cout << "Enter second point (x2, yc2): ";
-		cin >> x2 >> yc2;
-	}
-
-	glutInit(&argc, argv);
-	glutInitDisplayMode(GLUT_RGB | GLUT_SINGLE);
-
-	glutInitWindowSize(WINSIZE, WINSIZE);
-	glutCreateWindow("Bresenham Line");
-
-	init();
-
-	if (keymouse == 2) {
-		glutMouseFunc(mousefunc);
-	}
-	else {
-		plotLine(x1, yc1, x2, yc2);
-	}
-
-	glutDisplayFunc(display);
-	glutMainLoop();
-}
-
-void init() {
-	glClear(GL_COLOR_BUFFER_BIT);
-	glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-	glOrtho(0.0f, (float)(WINSIZE - 1), 0.0f, (float)(WINSIZE - 1), -1.0f, 1.0f);
-}
-
-void display() {
-	return;
-}
-
-void mousefunc(int button, int state, int x, int y) {
-	if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN) {
-		if (plotflag == 1) {
-			x2 = x;
-			yc2 = WINSIZE - y;
-			plotLine(x1, yc1, x2, yc2);
-		}
-		else if (plotflag == 0) {
-			x1 = x;
-			yc1 = WINSIZE - y;
-		}
-		plotflag = 1 - plotflag;
-	}
-	return;
-}
-
-void plotPoint(int x, int y) {
-	glColor3f(1.0f, 0.0f, 0.0f);
-
+// function to draw a pixel
+void drawPixel(int x, int y)
+{
+	glColor3f(0, 0, 1); //blue
+	glPointSize(5);
 	glBegin(GL_POINTS);
 	glVertex2i(x, y);
 	glEnd();
-
 	glFlush();
-	return;
 }
 
-void plotLine(int x1, int yc1, int x2, int yc2) {
-	int dx = (x2 - x1), dy = (yc2 - yc1), isDxNeg = (dx < 0) ? 1 : 0, isDyNeg = (dy < 0) ? 1 : 0, e, incX = (isDxNeg) ? -1 : 1, incY = (isDyNeg) ? -1 : 1, x = x1, y = yc1, incDown = 0, incUp = 0;
-
-	if (dx == 0) {
-		if (isDyNeg) {
-			for (int i = 0; i > dy; i--) {
-				plotPoint(x1, yc1 + i);
+// function to draw line using Bresenham's line drawing algorithm
+void drawLine()
+{
+	int dx, dy, i, e;
+	int incx = 1, incy = 1, inc1, inc2;
+	int x, y;
+	dx = x2 - x1;
+	dy = y2 - yc1;
+	if (dx == 0)
+	{
+		for (i = 0; i <= dy; i++)
+			drawPixel(x1, yc1 + i);
+		return;
+	}
+	if (dy == 0)
+	{
+		for (i = 0; i <= dx; i++)
+			drawPixel(x1 + i, yc1);
+		return;
+	}
+	if (dx < 0)
+		dx = -dx;
+	if (dy < 0)
+		dy = -dy;
+	if (x2 < x1)
+		incx = -1;
+	if (y2 < yc1)
+		incy = -1;
+	x = x1;
+	y = yc1;
+	if (dx > dy)
+	{
+		drawPixel(x, y);
+		e = 2 * dy - dx;
+		inc1 = 2 * (dy - dx);
+		inc2 = 2 * dy;
+		for (i = 0; i < dx; i++)
+		{
+			if (e > 0)
+			{
+				y = y + incy;
+				e = e + inc1;
 			}
-		}
-		else {
-			for (int i = 0; i < dy; i++) {
-				plotPoint(x1, yc1 + i);
+			else
+			{
+				e = e + inc2;
 			}
+			x = x + incx;
+			drawPixel(x, y);
 		}
 	}
-	else if (dy == 0) {
-		if (isDxNeg) {
-			for (int i = 0; i > dx; i--) {
-				plotPoint(x1 + i, yc1);
+	else
+	{
+		drawPixel(x, y);
+		e = 2 * dx - dy;
+		inc1 = 2 * (dx - dy);
+		inc2 = 2 * dx;
+		for (i = 0; i < dy; i++)
+		{
+			if (e > 0)
+			{
+				x = x + incx;
+				e = e + inc1;
 			}
-		}
-		else {
-			for (int i = 0; i < dx; i++) {
-				plotPoint(x1 + i, yc1);
-			}
-		}
-	}
-	else {
-		dx = (isDxNeg) ? -dx : dx;
-		dy = (isDyNeg) ? -dy : dy;
-
-		if (dx > dy) {
-			plotPoint(x, y);
-			e = (2 * dy) - dx;
-			incUp = 2 * (dy - dx);
-			incDown = 2 * dy;
-
-			for (int i = 0; i < dx; i++) {
-				if (e > 0) {
-					y += incY;
-					e += incUp;
-				}
-				else {
-					e += incDown;
-				}
-				x += incX;
-				plotPoint(x, y);
-			}
-		}
-		else {
-			plotPoint(x, y);
-			e = (2 * dx) - dy;
-			incUp = 2 * (dx - dy);
-			incDown = 2 * dy;
-
-			for (int i = 0; i < dy; i++) {
-				if (e > 0) {
-					x += incX;
-					e += incUp;
-				}
-				else {
-					e += incDown;
-				}
-				y += incY;
-				plotPoint(x, y);
-			}
+			else
+				e = e + inc2;
+			y = y + incy;
+			drawPixel(x, y);
 		}
 	}
 	glFlush();
-	return;
+}
+
+void myInit()
+{
+	glClear(GL_COLOR_BUFFER_BIT);
+	glClearColor(1, 1, 1, 1);
+	gluOrtho2D(-250, 250, -250, 250);
+}
+
+void mouseFunc(int button, int state, int x, int y)
+{
+	if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN)
+	{
+		if (flag == 0)
+		{
+			std::cout << "x1, y1 : ";
+			x1 = x - 250;
+			yc1 = 250 - y;
+			flag++;
+			std::cout << x1 << " " << yc1 << " \n";
+		}
+		else
+		{
+			std::cout << "x2, y2 : ";
+			x2 = x - 250;
+			y2 = 250 - y;
+			flag = 0;
+			std::cout << x2 << " " << y2 << " \n";
+			drawLine();
+		}
+	}
+}
+
+void display() {}
+
+int main(int argc, char** argv)
+{
+	int choice;
+	std::cout << "Enter 1 for keyboard and 2 for mouse \n";
+	std::cin >> choice;
+	if (choice == 1)
+	{
+		std::cout << "Enter x1 : ";
+		std::cin >> x1;
+		std::cout << "Enter yc1 : ";
+		std::cin >> yc1;
+		std::cout << "Enter x2 : ";
+		std::cin >> x2;
+		std::cout << "Enter y2 : ";
+		std::cin >> y2;
+	}
+	glutInit(&argc, argv);
+	glutInitDisplayMode(GLUT_SINGLE | GLUT_RGB);
+	glutInitWindowSize(WINDOW_WIDTH, WINDOW_HEIGHT);
+	glutInitWindowPosition(100, 200);
+	glutCreateWindow("Line Drawing");
+	if (choice == 2)
+	{
+		glutMouseFunc(mouseFunc);
+		glutDisplayFunc(display);
+		myInit();
+	}
+	else
+	{
+		glutDisplayFunc(drawLine);
+		myInit();
+	}
+	glutMainLoop();
 }

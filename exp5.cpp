@@ -1,78 +1,70 @@
+#include<GL/glut.h>
 #include<iostream>
-#include<gl/glut.h>
+using namespace std;
 
-int m;
-typedef float point[3];
-point tetra[4] = { {0,100,-100},{0,0,100},{100,-100,-100},{-100,-100,-100} };
-void tetrahedron(void);
-void myInitS(void);
-void divide_triangle(point a, point b, point c, int m);
-void draw_triangle(point p1, point p2, point p3);
-int main(int argc, char* argv[])
-{
-	std::cout << "Enter the number of subdivisions";
-	std::cin >> m;
-	glutInit(&argc, argv);
-	glutInitDisplayMode(GLUT_SINGLE | GLUT_RGB | GLUT_DEPTH);
-	glutInitWindowPosition(100, 200);
-	glutInitWindowSize(500, 500);
-	glutCreateWindow("Sierpinski Gasket !!");
-	glutDisplayFunc(tetrahedron);
-	glEnable(GL_DEPTH_TEST);
-	myInitS();
-	glutMainLoop();
+typedef double point[3];
+int k;
+point tetra[4] = {{0,250,-250},{0,0,250},{250,-250,-250},{-250,-250,-250}};
+
+void triangle_draw(point p1, point p2, point p3){
+    glBegin(GL_TRIANGLES);
+    glVertex3dv(p1);
+    glVertex3dv(p2);
+    glVertex3dv(p3);
+    glEnd();
 }
 
-void divide_triangle(point a, point b, point c, int m)
-{
-	point v1, v2, v3;
-	int j;
-	if (m > 0) {
-		for (j = 0; j < 3; j++)
-		{
-			v1[j] = (a[j] + b[j]) / 2;
-			v2[j] = (a[j] + c[j]) / 2;
-			v3[j] = (b[j] + c[j]) / 2;
-		}
-		divide_triangle(a, v1, v2, m - 1);
-		divide_triangle(c, v2, v3, m - 1);
-		divide_triangle(b, v3, v1, m - 1);
-
-
-	}
-	else
-		draw_triangle(a, b, c);
-
+void tetrahedron_draw(point p1,point p2,point p3,point p4){
+    glColor3d(1,0,0);
+    triangle_draw(p1,p2,p3);
+    glColor3d(0,1,0);
+    triangle_draw(p1,p3,p4);
+    glColor3d(0,0,1);
+    triangle_draw(p1,p4,p2);
+    glColor3d(1,1,0);
+    triangle_draw(p2,p3,p4);
 }
 
-void myInitS()
-{
-	glClearColor(0.0, 0.0, 0.0, 1.0);
-	glOrtho(-500.0, 500.0, -500.0, 500.0, -500.0, 500.0);
+void divide_tetrahedron(point p1, point p2, point p3, point p4, int k){
+    point mid[6];
+    if(k>0){
+        for(int i=0;i<3;i++) mid[0][i] = (p1[i]+p2[i])/2; 
+        for(int i=0;i<3;i++) mid[1][i] = (p1[i]+p3[i])/2; 
+        for(int i=0;i<3;i++) mid[2][i] = (p1[i]+p4[i])/2; 
+        for(int i=0;i<3;i++) mid[3][i] = (p2[i]+p3[i])/2; 
+        for(int i=0;i<3;i++) mid[4][i] = (p3[i]+p4[i])/2; 
+        for(int i=0;i<3;i++) mid[5][i] = (p2[i]+p4[i])/2;
+
+        divide_tetrahedron(p1,mid[0],mid[1],mid[2],k-1); 
+        divide_tetrahedron(mid[0],p2,mid[3],mid[5],k-1); 
+        divide_tetrahedron(mid[1],mid[3],p3,mid[4],k-1); 
+        divide_tetrahedron(mid[2],mid[5],mid[4],p4,k-1); 
+    }else{
+        tetrahedron_draw(p1,p2,p3,p4);
+    }
 }
 
-void tetrahedron() {
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	glColor3f(0.0, 1.0, 0.0);
-	divide_triangle(tetra[0], tetra[1], tetra[2], m);
-	glColor3f(1.0, 0.0, 0.0);
-	divide_triangle(tetra[3], tetra[2], tetra[1], m);
-	glColor3f(0.0, 0.0, 1.0);
-	divide_triangle(tetra[0], tetra[3], tetra[1], m);
-
-	glColor3f(1.0, 1.0, 1.0);
-	divide_triangle(tetra[0], tetra[2], tetra[3], m);
-
-	glFlush();
-
-
+void display(){
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    divide_tetrahedron(tetra[0],tetra[1],tetra[2],tetra[3],k);
+    glFlush();
 }
 
-void draw_triangle(point p1, point p2, point p3)
-{
-	glBegin(GL_TRIANGLES);
-	glVertex3fv(p1);
-	glVertex3fv(p2);
-	glVertex3fv(p3);
-	glEnd();
+void myInit(){
+    glClearColor(0,0,0,1);
+    glOrtho(-500,500,-500,500,-500,500);
+}
+
+int main(int argc, char **argv){
+    cout << "Enter number of divisions: ";
+    cin >> k;
+    glutInit(&argc,argv);
+    glutInitDisplayMode(GLUT_SINGLE | GLUT_RGB | GLUT_DEPTH);
+    glutInitWindowPosition(0,0);
+    glutInitWindowSize(500,500);
+    glutCreateWindow("Serpenski Gasket");
+    glutDisplayFunc(display);
+    glEnable(GL_DEPTH_TEST);
+    myInit();
+    glutMainLoop();    
 }

@@ -4,7 +4,7 @@
 
 void sphere()
 {
-	double c = 3.142 / 180, phi, phir, phir20, theta, thetar, x, y, z, c80, xc, yc, r; // converting to radians
+	double c = 3.142 / 180, phi, phir, phir20, theta, thetar, x, y, z, c80; // converting to radians
 	// to get longitudes
 	for (phi = -80.0; phi <= 60.0; phi += 20.0)
 	{
@@ -63,7 +63,6 @@ void sphere()
 }
 void display()
 {
-	int j;
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
